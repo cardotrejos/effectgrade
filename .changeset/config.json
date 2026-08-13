@@ -7,7 +7,12 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@effectgrade/domain", "@effectgrade/test-kit"],
+  "ignore": [
+    "@effectgrade/adapters-node",
+    "@effectgrade/domain",
+    "@effectgrade/inventory",
+    "@effectgrade/test-kit"
+  ],
   "privatePackages": {
     "version": false,
     "tag": false

@@ -1,7 +1,9 @@
 {
   "files": [],
   "references": [
+    { "path": "./packages/adapters-node" },
     { "path": "./packages/domain" },
+    { "path": "./packages/inventory" },
     { "path": "./packages/test-kit" },
     { "path": "./apps/cli" }
   ]

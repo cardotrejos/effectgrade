@@ -1,5 +1,5 @@
 {
-  "name": "@effectgrade/test-kit",
+  "name": "@effectgrade/inventory",
   "version": "0.0.0",
   "private": true,
   "files": [
@@ -21,7 +21,7 @@
     "effect": "4.0.0-rc.108"
   },
   "devDependencies": {
-    "@types/node": "22.20.1",
+    "@effectgrade/test-kit": "workspace:*",
     "typescript": "5.9.3"
   }
 }

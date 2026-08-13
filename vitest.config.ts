@@ -2,13 +2,19 @@ import { fileURLToPath } from "node:url"
 
 import { defineConfig } from "vitest/config"
 
+const adaptersEntry = fileURLToPath(
+  new URL("./packages/adapters-node/src/index.ts", import.meta.url),
+)
 const domainEntry = fileURLToPath(new URL("./packages/domain/src/index.ts", import.meta.url))
+const inventoryEntry = fileURLToPath(new URL("./packages/inventory/src/index.ts", import.meta.url))
 const testKitEntry = fileURLToPath(new URL("./packages/test-kit/src/index.ts", import.meta.url))
 
 export default defineConfig({
   resolve: {
     alias: {
+      "@effectgrade/adapters-node": adaptersEntry,
       "@effectgrade/domain": domainEntry,
+      "@effectgrade/inventory": inventoryEntry,
       "@effectgrade/test-kit": testKitEntry,
     },
   },

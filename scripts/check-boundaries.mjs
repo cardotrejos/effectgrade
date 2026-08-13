@@ -68,7 +68,12 @@ const rules = [
   },
   {
     name: "filesystem isolation",
-    roots: ["packages/domain/src", "packages/catalog", "packages/capability-packs"],
+    roots: [
+      "packages/domain/src",
+      "packages/inventory/src",
+      "packages/catalog",
+      "packages/capability-packs",
+    ],
     applies: (filePath) => !isTestFile(filePath),
     forbidden: [
       {

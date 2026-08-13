@@ -1,3 +1,7 @@
+export { withWriteFaults } from "./fault.js"
+export { makeMemoryFileSystem } from "./memory-fs.js"
+export { withTempDir } from "./temp.js"
+
 export type CommandResult = {
   readonly exitCode: number
   readonly stdout: string
