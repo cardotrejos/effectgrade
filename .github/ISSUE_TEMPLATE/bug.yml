@@ -1,41 +1,16 @@
 name: Bug
-description: Report incorrect EffectGrade behavior
+description: Something is wrong
 labels: ["bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Use a security advisory instead if this report can mutate a repository unsafely, escape the sandbox root, or leak secrets.
   - type: textarea
     id: summary
     attributes:
-      label: Summary
-      description: What happened, and what should have happened?
+      label: What happened
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Reproduction
-      description: Commands, fixture shape, and relevant output.
+      label: How to reproduce
     validations:
       required: true
-  - type: input
-    id: version
-    attributes:
-      label: EffectGrade version
-      placeholder: 0.0.0
-  - type: dropdown
-    id: command
-    attributes:
-      label: Command
-      options:
-        - inspect
-        - catalog
-        - plan
-        - verify
-        - apply
-        - adopt
-        - status
-        - doctor
-        - other
