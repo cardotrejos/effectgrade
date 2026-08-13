@@ -17,6 +17,7 @@ Thumbs.db
 .effectgrade/
 .worktrees/
 worktrees/
+progress.md
 
 # Editors
 .idea/
