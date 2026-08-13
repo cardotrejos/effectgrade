@@ -1,0 +1,25 @@
+name: Capability or profile
+description: Propose a capability, profile, or compatibility change
+labels: ["capability"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: What existing-repository job should this make safe or repeatable?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Interviews, repositories, or repeated demand. One anecdote is not enough.
+    validations:
+      required: true
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+      description: What this proposal must not become.
+    validations:
+      required: true

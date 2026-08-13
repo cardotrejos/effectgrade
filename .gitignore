@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Builds and caches
+dist/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Local / generated working trees
+.tmp/
+.effectgrade/
+.worktrees/
+worktrees/
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Packaging
+*.tgz

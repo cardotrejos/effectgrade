@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/node_modules/**",
+    "effectgrade-plan.md"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "pedantic": "off"
+  },
+  "rules": {
+    "no-unused-vars": "error"
+  }
+}

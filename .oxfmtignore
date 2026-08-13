@@ -1,0 +1,9 @@
+**/dist/**
+**/coverage/**
+**/.turbo/**
+**/node_modules/**
+pnpm-lock.yaml
+effectgrade-plan.md
+*.tgz
+CHANGELOG.md
+LICENSE

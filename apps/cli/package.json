@@ -1,0 +1,47 @@
+{
+  "name": "@aclabs/effectgrade",
+  "version": "0.0.0",
+  "description": "Verified adoption, upgrades, and compatibility for Effect applications.",
+  "homepage": "https://effectgrade.aclabs.io",
+  "bugs": {
+    "url": "https://github.com/aclabs/effectgrade/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aclabs/effectgrade.git"
+  },
+  "bin": {
+    "effectgrade": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@effectgrade/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@effectgrade/test-kit": "workspace:*",
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  }
+}

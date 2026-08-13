@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Optional native accelerator for msgpackr (Turbo). The JS fallback is enough.
+allowBuilds:
+  msgpackr-extract: false
