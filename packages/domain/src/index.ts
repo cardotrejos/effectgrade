@@ -6,7 +6,7 @@ export const engineEffectVersion = "4.0.0-rc.108" as const
 
 export const cliBinaryName = "effectgrade" as const
 
-export const publicPackageName = "@aclabs/effectgrade" as const
+export const publicPackageName = "@cardotrejos/effectgrade" as const
 
 export const stateDirectoryName = ".effectgrade" as const
 

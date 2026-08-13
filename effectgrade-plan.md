@@ -158,9 +158,9 @@ EffectGrade Cloud
 ```text
 Product:           EffectGrade
 CLI binary:        effectgrade
-Initial repository: aclabs/effectgrade
-Initial npm package: @aclabs/effectgrade
-Initial website:   effectgrade.aclabs.io
+Initial repository: cardotrejos/effectgrade
+Initial npm package: @cardotrejos/effectgrade
+Initial website:   github.com/cardotrejos/effectgrade
 Future docs domain: effectgrade.dev, only after validation and availability review
 State directory:   .effectgrade/
 Desired-state file: effectgrade.config.jsonc
@@ -169,7 +169,7 @@ Diagnostic prefix: EG
 Backlog prefix:    EG-
 ```
 
-The initial public package should use the existing `@aclabs` organization so launch does not depend on obtaining another namespace. Internal workspace package names may use `@effectgrade/*` while private; public extraction of those packages requires an explicit namespace-availability and migration decision.
+The initial public package launches from the personal GitHub and npm scope `@cardotrejos` so launch does not depend on a paid organization. Internal workspace package names may use `@effectgrade/*` while private; public extraction of those packages requires an explicit namespace-availability and migration decision.
 
 Do not ship a short binary alias in v0.x. `effectgrade` is already compact, searchable, and unambiguous.
 
@@ -206,7 +206,7 @@ Before a dedicated domain purchase or commercial trademark filing:
 - retain “for Effect applications” positioning without using Effect’s visual identity as EffectGrade’s own brand;
 - document the preliminary nature of availability checks until legal clearance is complete.
 
-The project should launch under `effectgrade.aclabs.io` and `@aclabs/effectgrade`; a dedicated domain is a validation reward, not a prerequisite.
+The project should launch under `github.com/cardotrejos/effectgrade` and `@cardotrejos/effectgrade`; a dedicated domain is a validation reward, not a prerequisite.
 
 # 3. Research-backed market position
 
@@ -721,7 +721,7 @@ Reject or defer a feature when it:
 ## 8.1 Inspect an existing repository
 
 ```bash
-npx @aclabs/effectgrade inspect
+npx @cardotrejos/effectgrade inspect
 ```
 
 Expected output:
@@ -754,7 +754,7 @@ No writes. No network. No execution of project files.
 ## 8.2 Plan Effect adoption
 
 ```bash
-npx @aclabs/effectgrade plan add \
+npx @cardotrejos/effectgrade plan add \
   core \
   config \
   hono-bridge \
@@ -799,7 +799,7 @@ Verification
 ## 8.3 Verify without touching the repository
 
 ```bash
-npx @aclabs/effectgrade verify --plan .effectgrade/plans/01J....json
+npx @cardotrejos/effectgrade verify --plan .effectgrade/plans/01J....json
 ```
 
 Expected behavior:
@@ -818,7 +818,7 @@ Expected behavior:
 ## 8.4 Apply the verified patch
 
 ```bash
-npx @aclabs/effectgrade apply --plan .effectgrade/plans/01J....json
+npx @cardotrejos/effectgrade apply --plan .effectgrade/plans/01J....json
 ```
 
 Apply must:
@@ -835,7 +835,7 @@ Apply must:
 ## 8.5 Check managed state
 
 ```bash
-npx @aclabs/effectgrade status
+npx @cardotrejos/effectgrade status
 ```
 
 Expected output:
@@ -864,7 +864,7 @@ Upgrade
 ## 8.6 Diagnose a repository
 
 ```bash
-npx @aclabs/effectgrade doctor
+npx @cardotrejos/effectgrade doctor
 ```
 
 Checks:
@@ -886,7 +886,7 @@ Checks:
 ## 8.7 Upgrade
 
 ```bash
-npx @aclabs/effectgrade upgrade --to profile:effect-v4-stable
+npx @cardotrejos/effectgrade upgrade --to profile:effect-v4-stable
 ```
 
 Output must classify:
@@ -908,9 +908,9 @@ Canonical naming:
 ```text
 product:             EffectGrade
 binary:              effectgrade
-initial npm package: @aclabs/effectgrade
-repository:          aclabs/effectgrade
-initial website:     effectgrade.aclabs.io
+initial npm package: @cardotrejos/effectgrade
+repository:          cardotrejos/effectgrade
+initial website:     github.com/cardotrejos/effectgrade
 state directory:     .effectgrade/
 config:              effectgrade.config.jsonc
 lockfile:            effectgrade.lock.json
@@ -919,8 +919,8 @@ lockfile:            effectgrade.lock.json
 Usage:
 
 ```bash
-pnpm dlx @aclabs/effectgrade inspect
-npx @aclabs/effectgrade inspect
+pnpm dlx @cardotrejos/effectgrade inspect
+npx @cardotrejos/effectgrade inspect
 ```
 
 The package exposes the `effectgrade` binary, so installed-project usage remains:
@@ -1251,7 +1251,7 @@ Proposed initial schema:
 
 ```jsonc
 {
-  "$schema": "https://effectgrade.aclabs.io/schemas/config/v1.json",
+  "$schema": "https://github.com/cardotrejos/effectgrade/schemas/config/v1.json",
   "schemaVersion": "1",
   "profile": "effect-v4-rc108-node22-pnpm-hono-bridge",
   "defaults": {
@@ -1313,7 +1313,7 @@ Proposed shape:
 
 ```json
 {
-  "$schema": "https://effectgrade.aclabs.io/schemas/lock/v1.json",
+  "$schema": "https://github.com/cardotrejos/effectgrade/schemas/lock/v1.json",
   "schemaVersion": "1",
   "tool": {
     "name": "effectgrade",
@@ -5277,7 +5277,7 @@ Agent support is valuable, but it should expose deterministic tools rather than 
 ## 24.1 Programmatic API
 
 ```ts
-import { EffectGrade } from "@aclabs/effectgrade/sdk"
+import { EffectGrade } from "@cardotrejos/effectgrade/sdk"
 
 const result = await EffectGrade.inspect({
   root: process.cwd(),
@@ -5319,9 +5319,9 @@ API design:
 Initial public surface:
 
 ```text
-@aclabs/effectgrade          CLI package and `effectgrade` binary
-@aclabs/effectgrade/sdk      subpath export for the programmatic API
-@aclabs/effectgrade/schema   subpath export for public schemas
+@cardotrejos/effectgrade          CLI package and `effectgrade` binary
+@cardotrejos/effectgrade/sdk      subpath export for the programmatic API
+@cardotrejos/effectgrade/schema   subpath export for public schemas
 ```
 
 Private workspace boundaries:
@@ -7607,7 +7607,7 @@ Nightly failures do not automatically mutate profiles. They open/annotate an inv
 8. Sign/tag release.
 9. Publish canary.
 10. Install canary through npm/pnpm in clean environments.
-11. Run `npx @aclabs/effectgrade version`.
+11. Run `npx @cardotrejos/effectgrade version`.
 12. Run end-to-end public docs command.
 13. Promote release.
 14. Publish profile/capability matrix.
@@ -7773,11 +7773,11 @@ Use a pinned example repository.
 Commands:
 
 ```bash
-pnpm dlx @aclabs/effectgrade inspect
-pnpm dlx @aclabs/effectgrade plan add core hono-bridge
-pnpm dlx @aclabs/effectgrade verify --plan ...
-pnpm dlx @aclabs/effectgrade apply --plan ...
-pnpm dlx @aclabs/effectgrade status
+pnpm dlx @cardotrejos/effectgrade inspect
+pnpm dlx @cardotrejos/effectgrade plan add core hono-bridge
+pnpm dlx @cardotrejos/effectgrade verify --plan ...
+pnpm dlx @cardotrejos/effectgrade apply --plan ...
+pnpm dlx @cardotrejos/effectgrade status
 ```
 
 Show:
@@ -7841,7 +7841,7 @@ related limitations
 CLI can print:
 
 ```text
-Docs: effectgrade.aclabs.io/errors/EG3402
+Docs: github.com/cardotrejos/effectgrade/errors/EG3402
 ```
 
 The URL key is stable even if site framework changes.
@@ -10653,7 +10653,7 @@ Create these ADRs before or during the corresponding implementation. Each ADR in
 
 ## ADR-021 — EffectGrade name and launch namespace
 
-**Decision:** use **EffectGrade** as the permanent product name; launch from `aclabs/effectgrade`, `@aclabs/effectgrade`, and `effectgrade.aclabs.io`; expose the `effectgrade` binary.
+**Decision:** use **EffectGrade** as the permanent product name; launch from `cardotrejos/effectgrade`, `@cardotrejos/effectgrade`, and `github.com/cardotrejos/effectgrade`; expose the `effectgrade` binary.
 
 **Alternatives:**
 
@@ -10661,13 +10661,13 @@ Create these ADRs before or during the corresponding implementation. Each ADR in
 - Layerward;
 - EffectOps;
 - Effect Steward;
-- a generic ACLabs-only product name.
+- a generic personal-only product name.
 
 **Consequences:**
 
 - positioning emphasizes production readiness and recurring verification rather than scaffolding;
 - the product family can expand into Profiles, Verified, Registry, and Cloud;
-- initial namespace ownership is practical through ACLabs;
+- initial namespace ownership is practical through the personal `cardotrejos` GitHub and npm scope;
 - final domain/trademark clearance remains required before a major commercial launch;
 - no short CLI alias is shipped in v0.x.
 
@@ -11084,7 +11084,7 @@ These questions should be resolved with ADRs, spikes, or user evidence. They are
 
 ## 44.8 Questions to answer before M1
 
-- [x] Product name: EffectGrade; initial package: `@aclabs/effectgrade`; binary: `effectgrade`.
+- [x] Product name: EffectGrade; initial package: `@cardotrejos/effectgrade`; binary: `effectgrade`.
 - [x] Engine baseline: Effect `4.0.0-rc.108`.
 - [ ] Freeze the first v4 rc.108 package/peer-version list and the v3/beta migration-source detection matrix.
 - [ ] exact Hono fixture shape.

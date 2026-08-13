@@ -43,7 +43,8 @@ const rules = [
       },
       {
         test: (specifier) =>
-          specifier === "@aclabs/effectgrade" || specifier.startsWith("@aclabs/effectgrade/"),
+          specifier === "@cardotrejos/effectgrade" ||
+          specifier.startsWith("@cardotrejos/effectgrade/"),
         message: "domain cannot import the CLI package",
       },
       {

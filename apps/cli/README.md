@@ -1,9 +1,9 @@
-# @aclabs/effectgrade
+# @cardotrejos/effectgrade
 
 Verified adoption, upgrades, and compatibility for Effect applications.
 
 ```bash
-pnpm dlx @aclabs/effectgrade --help
+pnpm dlx @cardotrejos/effectgrade --help
 ```
 
 This package is an internal preview. The `effectgrade` binary is reserved;

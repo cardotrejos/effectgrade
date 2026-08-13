@@ -34,10 +34,14 @@ if (process.exitCode === 1) {
 const staging = await mkdtemp(path.join(tmpdir(), "effectgrade-pack-"))
 
 try {
-  execFileSync("pnpm", ["--filter", "@aclabs/effectgrade", "pack", "--pack-destination", staging], {
-    cwd: root,
-    stdio: "pipe",
-  })
+  execFileSync(
+    "pnpm",
+    ["--filter", "@cardotrejos/effectgrade", "pack", "--pack-destination", staging],
+    {
+      cwd: root,
+      stdio: "pipe",
+    },
+  )
 
   const archives = (await readdir(staging)).filter((name) => name.endsWith(".tgz"))
   const archive = archives[0]

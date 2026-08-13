@@ -1,15 +1,15 @@
 {
-  "name": "@aclabs/effectgrade",
+  "name": "@cardotrejos/effectgrade",
   "version": "0.0.0",
   "description": "Verified adoption, upgrades, and compatibility for Effect applications.",
-  "homepage": "https://effectgrade.aclabs.io",
+  "homepage": "https://github.com/cardotrejos/effectgrade",
   "bugs": {
-    "url": "https://github.com/aclabs/effectgrade/issues"
+    "url": "https://github.com/cardotrejos/effectgrade/issues"
   },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aclabs/effectgrade.git"
+    "url": "git+https://github.com/cardotrejos/effectgrade.git"
   },
   "bin": {
     "effectgrade": "./dist/bin.js"

@@ -10,7 +10,7 @@ This is not another starter template, fixed Effect scaffold, or greenfield stack
 
 Internal preview. The public command surface is reserved, but inspect/plan/verify/apply are not implemented yet.
 
-Initial package: `@aclabs/effectgrade`
+Initial package: `@cardotrejos/effectgrade`
 Binary: `effectgrade`
 Engine baseline: Effect `4.0.0-rc.108`
 First supported path: add a production-grade Effect runtime boundary to an existing Node + Hono application
@@ -24,11 +24,11 @@ inspect → plan → verify → apply → status
 ```
 
 ```bash
-pnpm dlx @aclabs/effectgrade inspect
-pnpm dlx @aclabs/effectgrade plan add core hono-bridge
-pnpm dlx @aclabs/effectgrade verify --plan .effectgrade/plans/<id>.json
-pnpm dlx @aclabs/effectgrade apply --plan .effectgrade/plans/<id>.json
-pnpm dlx @aclabs/effectgrade status
+pnpm dlx @cardotrejos/effectgrade inspect
+pnpm dlx @cardotrejos/effectgrade plan add core hono-bridge
+pnpm dlx @cardotrejos/effectgrade verify --plan .effectgrade/plans/<id>.json
+pnpm dlx @cardotrejos/effectgrade apply --plan .effectgrade/plans/<id>.json
+pnpm dlx @cardotrejos/effectgrade status
 ```
 
 See the current CLI stub with `pnpm build && pnpm effectgrade --help`.
@@ -45,7 +45,7 @@ See the current CLI stub with `pnpm build && pnpm effectgrade --help`.
 This is a pnpm + Turbo monorepo.
 
 ```text
-apps/cli                 public @aclabs/effectgrade binary
+apps/cli                 public @cardotrejos/effectgrade binary
 packages/domain          serializable contracts and product identity
 packages/test-kit        shared test helpers
 ```

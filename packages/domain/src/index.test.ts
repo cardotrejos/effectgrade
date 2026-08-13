@@ -18,7 +18,7 @@ describe("product identity", () => {
     expect(diagnosticPrefix).toBe("EG")
     expect(engineEffectVersion).toBe("4.0.0-rc.108")
     expect(cliBinaryName).toBe("effectgrade")
-    expect(publicPackageName).toBe("@aclabs/effectgrade")
+    expect(publicPackageName).toBe("@cardotrejos/effectgrade")
     expect(stateDirectoryName).toBe(".effectgrade")
     expect(configFileName).toBe("effectgrade.config.jsonc")
     expect(lockFileName).toBe("effectgrade.lock.json")
