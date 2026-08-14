@@ -1,5 +1,12 @@
 export { upsertJsonProperty, upsertPackageDependency } from "./package-ops.js"
 export type { JsonEditResult } from "./package-ops.js"
+export {
+  projectDesiredState,
+  projectLockState,
+  statusRepository,
+  writeProjectedState,
+} from "./status.js"
+export type { StatusCategory, StatusReport } from "./status.js"
 export { applyVerifiedPlan } from "./apply.js"
 export type { ApplyResult } from "./apply.js"
 export { remainingPlanChanges, verifyPlanIdempotency } from "./idempotency.js"

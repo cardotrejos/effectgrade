@@ -84,6 +84,10 @@ describe("cli contract", () => {
     const second = await runCli(["apply"], { fileSystem })
     expectExitCode(second, 0)
     expect(second.stdout).toContain("no-op")
+
+    const status = await runCli(["status"], { fileSystem })
+    expectExitCode(status, 0)
+    expect(status.stdout).toContain("clean")
   })
 
   it("plans core and hono-bridge against a Hono fixture", async () => {

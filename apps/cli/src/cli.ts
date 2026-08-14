@@ -27,6 +27,8 @@ import {
   makeOverlayTree,
   planIdentity,
   renderPlanSummary,
+  statusRepository,
+  writeProjectedState,
   type PlanOperation,
 } from "@effectgrade/transform"
 
@@ -303,7 +305,13 @@ const planAddCommand = async (
 const loadLatestPlan = async (
   fileSystem: FileSystemApi,
 ): Promise<
-  { readonly id: string; readonly operations: ReadonlyArray<PlanOperation> } | undefined
+  | {
+      readonly id: string
+      readonly profileId?: string
+      readonly capabilities?: ReadonlyArray<string>
+      readonly operations: ReadonlyArray<PlanOperation>
+    }
+  | undefined
 > => {
   const children = await Effect.runPromise(
     fileSystem
@@ -317,7 +325,30 @@ const loadLatestPlan = async (
   const raw = await Effect.runPromise(fileSystem.readFile(latest))
   return JSON.parse(raw) as {
     readonly id: string
+    readonly profileId?: string
+    readonly capabilities?: ReadonlyArray<string>
     readonly operations: ReadonlyArray<PlanOperation>
+  }
+}
+
+const statusCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
+  const report = await Effect.runPromise(statusRepository(fileSystem))
+  const exitCode = report.category === "clean" || report.category === "unmanaged" ? 0 : 9
+  if (hasFlag(args, "--json")) {
+    return {
+      exitCode,
+      stdout: `${JSON.stringify({ command: "status", ok: true, result: report }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+  return {
+    exitCode,
+    stdout: `Status            ${report.category}\n${report.detail}\n`,
+    stderr: "",
   }
 }
 
@@ -331,6 +362,21 @@ const applyCommand = async (
     return { exitCode: 2, stdout: "", stderr: "No saved plan. Run `effectgrade plan add` first.\n" }
   }
   const result = await Effect.runPromise(applyVerifiedPlan(fileSystem, plan.operations))
+  if (result.applied && plan.profileId !== undefined) {
+    const packages = plan.operations.flatMap((operation) =>
+      operation.kind === "upsert-package-dependency"
+        ? [{ name: operation.name, version: operation.version }]
+        : [],
+    )
+    await Effect.runPromise(
+      writeProjectedState(fileSystem, {
+        profileId: plan.profileId,
+        capabilities: plan.capabilities ?? [],
+        planId: plan.id,
+        packages,
+      }),
+    )
+  }
   const exitCode = result.diagnostics.length > 0 ? 6 : 0
   const summary = result.noop
     ? "Apply is a no-op; the verified plan is already present.\n"
@@ -384,6 +430,10 @@ export const runCli = async (
 
   if (command === "apply") {
     return applyCommand(args, options)
+  }
+
+  if (command === "status") {
+    return statusCommand(args, options)
   }
 
   if (command !== undefined && isKnownCommand(command)) {
