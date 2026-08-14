@@ -169,6 +169,42 @@ describe("cli contract", () => {
       })
       expectExitCode(second, 0)
       expect(second.stdout).toContain("no-op")
+      expect(second.stdout).not.toMatch(/^\s*[+~-] /m)
+      const firstPlan = first.stdout.match(/Plan (sha256:[a-f0-9]+)/)?.[1]
+      const secondPlan = second.stdout.match(/Plan (sha256:[a-f0-9]+)/)?.[1]
+      expect(firstPlan).toBeDefined()
+      expect(secondPlan).toBe(firstPlan)
+    })
+  })
+
+  it("verifies the plan just created, not the lexicographically last hash", async () => {
+    await withTempDir(async (root) => {
+      const seed = seedFromFixture("hono-pnpm-basic")
+      for (const [rel, contents] of Object.entries(seed)) {
+        const fullPath = join(root, rel)
+        await mkdir(dirname(fullPath), { recursive: true })
+        await writeFile(fullPath, contents)
+      }
+      const fileSystem = makeNodeFileSystem(root)
+      const planned = await runCli(["plan", "add", "core", "hono-bridge"], {
+        fileSystem,
+        sourceRoot: root,
+      })
+      expectExitCode(planned, 0)
+      const planId = planned.stdout.match(/Plan (sha256:[a-f0-9]+)/)?.[1]
+      expect(planId).toBeDefined()
+
+      const decoyId = `sha256:${"f".repeat(64)}`
+      await mkdir(join(root, ".effectgrade/plans"), { recursive: true })
+      await writeFile(
+        join(root, `.effectgrade/plans/${decoyId.slice("sha256:".length)}.json`),
+        `${JSON.stringify({ id: decoyId, profileId: "decoy", capabilities: [], operations: [] }, null, 2)}\n`,
+      )
+
+      const verified = await runCli(["verify"], { fileSystem, sourceRoot: root })
+      expectExitCode(verified, 0)
+      expect(verified.stdout).toContain(planId)
+      expect(verified.stdout).not.toContain(decoyId)
     })
   })
 

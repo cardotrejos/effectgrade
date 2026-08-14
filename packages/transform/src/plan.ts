@@ -47,6 +47,8 @@ export type CapabilityPlan = {
 
 const asPath = (value: string): RepoPath => Result.getOrThrow(decodeRepoPath(value))
 
+const isGeneratedEffectModule = (filePath: string): boolean => /(^|\/)src\/effect\//.test(filePath)
+
 const joinRepo = (root: string, relative: string): RepoPath =>
   asPath(root === "." ? relative : `${root}/${relative}`)
 
@@ -95,8 +97,11 @@ export const compileHonoAdoptionPlan = (input: {
     const root = target?.root ?? "."
     const manifest = joinRepo(root, "package.json")
     const effectDir = "src/effect"
-    const entry = target?.entrypoints[0] ?? joinRepo(root, "src/index.ts")
-    const appIdentifier = target?.frameworks[0]?.identifiers[0] ?? "app"
+    const entry =
+      target?.entrypoints.find((item) => !isGeneratedEffectModule(item)) ??
+      joinRepo(root, "src/index.ts")
+    const appIdentifier =
+      target?.frameworks[0]?.identifiers.find((name) => name !== "effectRoutes") ?? "app"
     const selected = new Set<string>(resolution.capabilities.map((capability) => capability.id))
     const operations: Array<PlanOperation> = []
 

@@ -287,15 +287,14 @@ const planAddCommand = async (
     files: tree.changes(),
   })
 
-  const planPath = Result.getOrThrow(
-    decodeRepoPath(`.effectgrade/plans/${id.slice("sha256:".length)}.json`),
-  )
+  const planPath = planFilePath(id)
   await Effect.runPromise(
     fileSystem.writeFile(
       planPath,
       `${JSON.stringify({ id, profileId, capabilities, operations: plan.operations }, null, 2)}\n`,
     ),
   )
+  await persistCurrentPlan(fileSystem, id)
 
   if (hasFlag(args, "--json")) {
     return {
@@ -312,33 +311,63 @@ const planAddCommand = async (
   }
 }
 
+type SavedPlan = {
+  readonly id: string
+  readonly profileId?: string
+  readonly capabilities?: ReadonlyArray<string>
+  readonly operations: ReadonlyArray<PlanOperation>
+}
+
+const plansDirectory = ".effectgrade/plans"
+const currentPlanPointer = Result.getOrThrow(decodeRepoPath(`${plansDirectory}/current`))
+
+const planHex = (id: string): string => (id.startsWith("sha256:") ? id.slice("sha256:".length) : id)
+
+const planFilePath = (id: string) =>
+  Result.getOrThrow(decodeRepoPath(`${plansDirectory}/${planHex(id)}.json`))
+
+const persistCurrentPlan = async (fileSystem: FileSystemApi, id: string): Promise<void> => {
+  await Effect.runPromise(fileSystem.writeFile(currentPlanPointer, `${id}\n`))
+}
+
+const readSavedPlan = async (
+  fileSystem: FileSystemApi,
+  path: ReturnType<typeof planFilePath>,
+): Promise<SavedPlan> => {
+  const raw = await Effect.runPromise(fileSystem.readFile(path))
+  return JSON.parse(raw) as SavedPlan
+}
+
 const loadLatestPlan = async (
   fileSystem: FileSystemApi,
-): Promise<
-  | {
-      readonly id: string
-      readonly profileId?: string
-      readonly capabilities?: ReadonlyArray<string>
-      readonly operations: ReadonlyArray<PlanOperation>
-    }
-  | undefined
-> => {
+  requested?: string,
+): Promise<SavedPlan | undefined> => {
+  if (requested !== undefined) {
+    return readSavedPlan(fileSystem, planFilePath(requested))
+  }
+
+  const pointer = await Effect.runPromise(
+    fileSystem.readFile(currentPlanPointer).pipe(Effect.orElseSucceed(() => undefined)),
+  )
+  const current = pointer?.trim()
+  if (current !== undefined && current.length > 0) {
+    return readSavedPlan(fileSystem, planFilePath(current))
+  }
+
   const children = await Effect.runPromise(
     fileSystem
-      .list(Result.getOrThrow(decodeRepoPath(".effectgrade/plans")))
+      .list(Result.getOrThrow(decodeRepoPath(plansDirectory)))
       .pipe(Effect.orElseSucceed(() => [] as const)),
   )
-  const latest = [...children].toSorted().at(-1)
-  if (latest === undefined) {
+  const jsonPlans = children.filter((child) => child.endsWith(".json"))
+  if (jsonPlans.length !== 1) {
     return undefined
   }
-  const raw = await Effect.runPromise(fileSystem.readFile(latest))
-  return JSON.parse(raw) as {
-    readonly id: string
-    readonly profileId?: string
-    readonly capabilities?: ReadonlyArray<string>
-    readonly operations: ReadonlyArray<PlanOperation>
+  const only = jsonPlans[0]
+  if (only === undefined) {
+    return undefined
   }
+  return readSavedPlan(fileSystem, only)
 }
 
 const verifyCommand = async (
@@ -347,7 +376,7 @@ const verifyCommand = async (
 ): Promise<CliResult> => {
   const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
   const sourceRoot = options.sourceRoot ?? process.cwd()
-  const plan = await loadLatestPlan(fileSystem)
+  const plan = await loadLatestPlan(fileSystem, optionValue(args, "--plan"))
   if (plan === undefined) {
     return { exitCode: 2, stdout: "", stderr: "No saved plan. Run `effectgrade plan add` first.\n" }
   }
@@ -443,7 +472,7 @@ const applyCommand = async (
   options: RunCliOptions,
 ): Promise<CliResult> => {
   const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
-  const plan = await loadLatestPlan(fileSystem)
+  const plan = await loadLatestPlan(fileSystem, optionValue(args, "--plan"))
   if (plan === undefined) {
     return { exitCode: 2, stdout: "", stderr: "No saved plan. Run `effectgrade plan add` first.\n" }
   }

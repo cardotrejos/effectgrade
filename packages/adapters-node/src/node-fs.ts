@@ -1,4 +1,4 @@
-import { lstat, mkdir, readFile, readdir, readlink, writeFile } from "node:fs/promises"
+import { lstat, mkdir, readFile, readdir, readlink, unlink, writeFile } from "node:fs/promises"
 import path from "node:path"
 
 import { Effect, Result } from "effect"
@@ -144,6 +144,25 @@ export const makeNodeFileSystem = (root: string): FileSystemApi => {
       })
     })
 
+  const removeFile = (repoPath: RepoPath): Effect.Effect<void, FileSystemError> =>
+    Effect.gen(function* () {
+      const absolute = toAbsolute(rootAbsolute, repoPath)
+      if (!isInside(rootAbsolute, absolute)) {
+        return yield* fail("path-escape", `${repoPath} escapes the repository root`, repoPath)
+      }
+      const info = yield* Effect.tryPromise({
+        try: () => lstat(absolute),
+        catch: (error) => mapNodeError(error, repoPath),
+      })
+      if (info.isDirectory()) {
+        return yield* fail("is-directory", `${repoPath} is a directory`, repoPath)
+      }
+      yield* Effect.tryPromise({
+        try: () => unlink(absolute),
+        catch: (error) => mapNodeError(error, repoPath),
+      })
+    })
+
   const list = (repoPath: RepoPath): Effect.Effect<ReadonlyArray<RepoPath>, FileSystemError> =>
     Effect.gen(function* () {
       const resolved = yield* resolveContained(rootAbsolute, repoPath)
@@ -165,6 +184,7 @@ export const makeNodeFileSystem = (root: string): FileSystemApi => {
     readFile: readFileString,
     readBytes,
     writeFile: writeFileString,
+    removeFile,
     stat,
     list,
   }

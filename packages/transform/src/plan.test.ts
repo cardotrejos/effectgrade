@@ -8,8 +8,9 @@ import { inspectInventory } from "@effectgrade/inventory"
 import { makeMemoryFileSystem } from "@effectgrade/test-kit"
 import { describe, expect, it } from "vitest"
 
+import { remainingPlanChanges } from "./idempotency.js"
 import { applyOperations, compileHonoAdoptionPlan } from "./plan.js"
-import { makeOverlayTree } from "./tree.js"
+import { flushOverlay, makeOverlayTree } from "./tree.js"
 
 const path = (value: string) => Result.getOrThrow(decodeRepoPath(value))
 
@@ -68,5 +69,50 @@ describe("compileHonoAdoptionPlan", () => {
 
     await Effect.runPromise(applyOperations(tree, plan.operations))
     expect(tree.changes()).toEqual(afterFirst)
+  })
+
+  it("recompiles an empty remaining plan after inspect on the applied tree", async () => {
+    const fs = makeMemoryFileSystem(seedFromFixture())
+    const firstInventory = await Effect.runPromise(
+      Effect.provideService(inspectInventory(), FileSystem, fs),
+    )
+    const firstPlan = await Effect.runPromise(
+      compileHonoAdoptionPlan({
+        inventory: firstInventory,
+        profileId: "effect-v4-rc108-node22-pnpm-hono-bridge",
+        capabilities: ["core", "hono-bridge"],
+      }),
+    )
+    const tree = makeOverlayTree(fs)
+    await Effect.runPromise(applyOperations(tree, firstPlan.operations))
+    await Effect.runPromise(flushOverlay(tree, fs))
+
+    const secondInventory = await Effect.runPromise(
+      Effect.provideService(inspectInventory(), FileSystem, fs),
+    )
+    const secondPlan = await Effect.runPromise(
+      compileHonoAdoptionPlan({
+        inventory: secondInventory,
+        profileId: "effect-v4-rc108-node22-pnpm-hono-bridge",
+        capabilities: ["core", "hono-bridge"],
+      }),
+    )
+
+    expect(await Effect.runPromise(remainingPlanChanges(fs, secondPlan.operations))).toEqual([])
+    expect(
+      secondPlan.operations.filter(
+        (operation) =>
+          operation.kind === "add-named-import" || operation.kind === "register-hono-route",
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: path("src/index.ts") }),
+        expect.objectContaining({
+          kind: "register-hono-route",
+          path: path("src/index.ts"),
+          appIdentifier: "app",
+        }),
+      ]),
+    )
   })
 })

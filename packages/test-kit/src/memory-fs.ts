@@ -102,6 +102,19 @@ export const makeMemoryFileSystem = (
       tree.set(value, { kind: "file", bytes: encoder.encode(contents), mode: 0o644 })
     })
 
+  const removeFile = (value: RepoPath): Effect.Effect<void, FileSystemError> =>
+    Effect.gen(function* () {
+      const entry = yield* get(value)
+      if (entry.kind === "directory") {
+        return yield* new FileSystemError({
+          reason: "is-directory",
+          detail: `${value} is a directory`,
+          path: value,
+        })
+      }
+      tree.delete(value)
+    })
+
   const symlink = (from: RepoPath, target: string): Effect.Effect<void, FileSystemError> =>
     Effect.sync(() => {
       const parent = parentOf(from)
@@ -188,5 +201,5 @@ export const makeMemoryFileSystem = (
     Effect.runSync(writeFile(asPath(seedPath), contents))
   }
 
-  return { readFile, readBytes, writeFile, stat, list, symlink }
+  return { readFile, readBytes, writeFile, removeFile, stat, list, symlink }
 }

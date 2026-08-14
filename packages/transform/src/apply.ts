@@ -88,6 +88,8 @@ const restore = (
     for (const [path, previous] of [...backups.entries()].toReversed()) {
       if (previous !== undefined) {
         yield* dest.writeFile(path as RepoPath, previous)
+        continue
       }
+      yield* dest.removeFile(path as RepoPath).pipe(Effect.orElseSucceed(() => undefined))
     }
   })

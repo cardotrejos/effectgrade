@@ -30,6 +30,8 @@ export type HonoDetection = {
 
 const asPath = (value: string): RepoPath => Result.getOrThrow(decodeRepoPath(value))
 
+const isGeneratedEffectModule = (filePath: string): boolean => /(^|\/)src\/effect\//.test(filePath)
+
 const diagnostic = (input: {
   code: "EG1104" | "EG1301"
   title: string
@@ -165,8 +167,9 @@ export const detectHono = (input: HonoDetectionInput): HonoDetection => {
     }
   }
 
-  const exported = sites.filter((site) => site.exported && site.name.length > 0)
-  const serveSites = sites.filter((site) => site.serve)
+  const hostSites = sites.filter((site) => !isGeneratedEffectModule(site.path))
+  const exported = hostSites.filter((site) => site.exported && site.name.length > 0)
+  const serveSites = hostSites.filter((site) => site.serve)
   const exportedFiles = new Set(exported.map((site) => site.path))
   if (exportedFiles.size > 1 && serveSites.length !== 1) {
     diagnostics.push(
@@ -183,13 +186,13 @@ export const detectHono = (input: HonoDetectionInput): HonoDetection => {
     .find((name) => name !== undefined)
 
   const chosen =
-    (servedName !== undefined ? exported.find((site) => site.name === servedName) : undefined) ??
+    (servedName !== undefined ? hostSites.find((site) => site.name === servedName) : undefined) ??
     (serveSites.length === 1
-      ? exported.find((site) => site.path === serveSites[0]?.path)
+      ? hostSites.find((site) => site.path === serveSites[0]?.path && site.name.length > 0)
       : undefined) ??
     (exported.length === 1 ? exported[0] : undefined) ??
-    (sites.filter((site) => site.name.length > 0).length === 1
-      ? sites.find((site) => site.name.length > 0)
+    (hostSites.filter((site) => site.name.length > 0).length === 1
+      ? hostSites.find((site) => site.name.length > 0)
       : undefined)
 
   const identifiers = [

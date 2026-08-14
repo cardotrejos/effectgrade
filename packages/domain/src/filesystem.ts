@@ -35,6 +35,7 @@ export interface FileSystemApi {
   readonly readFile: (path: RepoPath) => Effect.Effect<string, FileSystemError>
   readonly readBytes: (path: RepoPath) => Effect.Effect<Uint8Array, FileSystemError>
   readonly writeFile: (path: RepoPath, contents: string) => Effect.Effect<void, FileSystemError>
+  readonly removeFile: (path: RepoPath) => Effect.Effect<void, FileSystemError>
   readonly stat: (path: RepoPath) => Effect.Effect<FileStat, FileSystemError>
   readonly list: (path: RepoPath) => Effect.Effect<ReadonlyArray<RepoPath>, FileSystemError>
 }

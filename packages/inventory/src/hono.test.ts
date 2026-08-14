@@ -57,6 +57,41 @@ serve({ fetch: app.fetch, port: 3000 })
     expect(detected.diagnostics.some((diagnostic) => diagnostic.code === "EG1104")).toBe(true)
   })
 
+  it("prefers the serve() app over an exported generated effectRoutes module", () => {
+    const detected = detectHono({
+      packageRoot: path("."),
+      dependencies: { hono: "4.7.5", "@hono/node-server": "1.13.8" },
+      files: [
+        {
+          path: path("src/index.ts"),
+          text: `
+import { serve } from "@hono/node-server"
+import { Hono } from "hono"
+
+import { effectRoutes } from "./effect/http/routes"
+
+const app = new Hono()
+app.route("/effect", effectRoutes)
+serve({ fetch: app.fetch, port: 3000 })
+`,
+        },
+        {
+          path: path("src/effect/http/routes.ts"),
+          text: `
+import { Effect } from "effect"
+import { Hono } from "hono"
+
+export const effectRoutes = new Hono()
+`,
+        },
+      ],
+    })
+
+    expect(detected.framework?.identifiers).toEqual(["app"])
+    expect(detected.framework?.entrypoints).toEqual(["src/index.ts"])
+    expect(detected.diagnostics).toEqual([])
+  })
+
   it("reports EG1301 when Hono is a dependency but no app identifier exists", () => {
     const detected = detectHono({
       packageRoot: path("."),

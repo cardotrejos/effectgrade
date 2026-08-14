@@ -39,6 +39,18 @@ describe("MemoryFileSystem", () => {
     expect(result.children).toEqual([file])
   })
 
+  it("removes a written file", async () => {
+    const fs = makeMemoryFileSystem()
+    const file = path("src/gone.ts")
+    await Effect.runPromise(fs.writeFile(file, "temp\n"))
+    await Effect.runPromise(fs.removeFile(file))
+    const result = await Effect.runPromise(Effect.result(fs.readFile(file)))
+    expect(Result.isFailure(result)).toBe(true)
+    if (Result.isFailure(result)) {
+      expect(result.failure.reason).toBe("not-found")
+    }
+  })
+
   it("fails when a file is missing", async () => {
     const result = await run(
       Effect.gen(function* () {

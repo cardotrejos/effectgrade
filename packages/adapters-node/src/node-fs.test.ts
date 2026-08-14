@@ -36,6 +36,20 @@ describe("NodeFileSystem", () => {
     })
   })
 
+  it("removes a written file", async () => {
+    await withTempDir(async (root) => {
+      await mkdir(join(root, "src"), { recursive: true })
+      await writeFile(join(root, "src/gone.ts"), "temp\n")
+      const fs = makeNodeFileSystem(root)
+      await Effect.runPromise(fs.removeFile(path("src/gone.ts")))
+      const result = await Effect.runPromise(Effect.result(fs.readFile(path("src/gone.ts"))))
+      expect(Result.isFailure(result)).toBe(true)
+      if (Result.isFailure(result)) {
+        expect(result.failure.reason).toBe("not-found")
+      }
+    })
+  })
+
   it("refuses to follow a symlink out of the root", async () => {
     await withTempDir(async (root) => {
       await mkdir(join(root, "src"), { recursive: true })

@@ -80,4 +80,29 @@ describe("applyVerifiedPlan", () => {
     expect(failed.applied).toBe(false)
     expect(await Effect.runPromise(fs.readFile(path("package.json")))).toBe(original)
   })
+
+  it("deletes files created by a mid-flush failure", async () => {
+    const fs = makeMemoryFileSystem(seedFromFixture())
+    const plan = await planFor(fs)
+    const originalManifest = await Effect.runPromise(fs.readFile(path("package.json")))
+    const originalEntry = await Effect.runPromise(fs.readFile(path("src/index.ts")))
+
+    const failed = await Effect.runPromise(
+      applyVerifiedPlan(withWriteFaults(fs, 3), plan.operations),
+    )
+    expect(failed.applied).toBe(false)
+    expect(failed.diagnostics.some((item) => item.code === "EG5004")).toBe(true)
+    expect(await Effect.runPromise(fs.readFile(path("package.json")))).toBe(originalManifest)
+    expect(await Effect.runPromise(fs.readFile(path("src/index.ts")))).toBe(originalEntry)
+
+    for (const created of [
+      "src/effect/AppRuntime.ts",
+      "src/effect/index.ts",
+      "src/effect/http/routes.ts",
+      "src/effect/http/handlers/health.ts",
+    ]) {
+      const result = await Effect.runPromise(fs.readFile(path(created)).pipe(Effect.result))
+      expect(Result.isFailure(result)).toBe(true)
+    }
+  })
 })
