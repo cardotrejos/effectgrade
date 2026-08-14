@@ -1,9 +1,15 @@
+import { Effect } from "effect"
+import { makeNodeFileSystem } from "@effectgrade/adapters-node"
 import {
   cliBinaryName,
   engineEffectVersion,
+  FileSystem,
+  makeCommandEnvelope,
   productName,
   publicPackageName,
+  type FileSystemApi,
 } from "@effectgrade/domain"
+import { inspectInventory, renderPackageGraph } from "@effectgrade/inventory"
 
 export const cliVersion = "0.0.0"
 
@@ -90,7 +96,59 @@ const hasFlag = (args: ReadonlyArray<string>, ...flags: ReadonlyArray<string>): 
 const firstPositional = (args: ReadonlyArray<string>): string | undefined =>
   args.find((arg) => !arg.startsWith("-"))
 
-export const runCli = (args: ReadonlyArray<string>): CliResult => {
+export type RunCliOptions = {
+  readonly fileSystem?: FileSystemApi
+}
+
+const optionValue = (args: ReadonlyArray<string>, name: string): string | undefined => {
+  const index = args.indexOf(name)
+  if (index === -1) {
+    return undefined
+  }
+  const value = args[index + 1]
+  return value !== undefined && !value.startsWith("-") ? value : undefined
+}
+
+const inspectCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const started = new Date()
+  const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
+  const inventory = await Effect.runPromise(
+    Effect.provideService(inspectInventory(), FileSystem, fileSystem),
+  )
+  const completed = new Date()
+  const errors = inventory.diagnostics.filter((item) => item.severity === "error")
+  const warnings = inventory.diagnostics.filter((item) => item.severity === "warning")
+  const servers = inventory.targets.filter((target) => target.kind === "server")
+  const target = optionValue(args, "--target")
+  const ambiguous =
+    inventory.diagnostics.some((item) => item.code === "EG1104" || item.code === "EG1003") ||
+    (servers.length > 1 && target === undefined)
+  const exitCode = errors.length > 0 || ambiguous ? 3 : 0
+
+  if (hasFlag(args, "--json")) {
+    const envelope = makeCommandEnvelope({
+      command: "inspect",
+      result: inventory,
+      errors,
+      warnings,
+      toolVersion: cliVersion,
+      startedAt: started.toISOString(),
+      completedAt: completed.toISOString(),
+      durationMs: completed.getTime() - started.getTime(),
+    })
+    return { exitCode, stdout: `${JSON.stringify(envelope, null, 2)}\n`, stderr: "" }
+  }
+
+  return { exitCode, stdout: renderPackageGraph(inventory), stderr: "" }
+}
+
+export const runCli = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions = {},
+): Promise<CliResult> => {
   const json = hasFlag(args, "--json")
   const command = firstPositional(args)
 
@@ -104,6 +162,10 @@ export const runCli = (args: ReadonlyArray<string>): CliResult => {
       stdout: json ? `${JSON.stringify(versionJson, null, 2)}\n` : versionText,
       stderr: "",
     }
+  }
+
+  if (command === "inspect") {
+    return inspectCommand(args, options)
   }
 
   if (command !== undefined && isKnownCommand(command)) {

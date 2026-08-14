@@ -39,6 +39,15 @@ export const renderPackageGraph = (inventory: PackageGraphInventory): string => 
     lines.push(label("Entry point", primary.entrypoints[0]))
   }
 
+  if (inventory.effect !== undefined) {
+    if (!inventory.effect.present) {
+      lines.push(label("Effect", "not installed"))
+    } else {
+      const core = inventory.effect.versions.find((item) => item.name === "effect")
+      lines.push(label("Effect", core?.version ?? inventory.effect.channel))
+    }
+  }
+
   if (inventory.packages.length > 0) {
     lines.push("", "Packages")
     for (const pkg of inventory.packages) {

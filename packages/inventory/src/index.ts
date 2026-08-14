@@ -5,6 +5,8 @@ export {
   isGitIgnored,
   parseGitignore,
 } from "./ignore.js"
+export { detectEffect } from "./effect.js"
+export type { EffectDetection, EffectDetectionInput } from "./effect.js"
 export { detectHono } from "./hono.js"
 export type { HonoDetection, HonoDetectionInput, HonoSourceFile } from "./hono.js"
 export { inspectInventory } from "./inspect.js"

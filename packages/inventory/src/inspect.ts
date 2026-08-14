@@ -9,6 +9,7 @@ import {
   type TargetInventory,
 } from "@effectgrade/domain"
 
+import { detectEffect } from "./effect.js"
 import { detectHono } from "./hono.js"
 import { inspectTypeScript } from "./typescript.js"
 import { walk } from "./walk.js"
@@ -112,6 +113,10 @@ export const inspectInventory = (): Effect.Effect<PackageGraphInventory, never, 
     const packageRoots = graph.packages.map((pkg) => pkg.root)
     const targets: Array<TargetInventory> = []
     const diagnostics = [...graph.diagnostics, ...typescript.diagnostics]
+    const packageDependencies: Array<{
+      root: RepoPath
+      dependencies: Readonly<Record<string, string>>
+    }> = []
 
     for (const target of graph.targets) {
       const manifestPath = target.root === "." ? "package.json" : `${target.root}/package.json`
@@ -126,6 +131,8 @@ export const inspectInventory = (): Effect.Effect<PackageGraphInventory, never, 
           dependencies = {}
         }
       }
+
+      packageDependencies.push({ root: target.root, dependencies })
 
       const files = sources.filter(
         (file) => packageRootFor(file.path, packageRoots) === target.root,
@@ -148,10 +155,18 @@ export const inspectInventory = (): Effect.Effect<PackageGraphInventory, never, 
       })
     }
 
+    const effect = detectEffect({
+      packages: packageDependencies,
+      files: sources,
+      languageService: typescript.typescript.configs.some((config) => config.effectLanguageService),
+    })
+    diagnostics.push(...effect.diagnostics)
+
     return {
       ...graph,
       targets,
       typescript: typescript.typescript,
+      effect: effect.effect,
       diagnostics: sortDiagnostics(diagnostics),
     }
   })

@@ -34,7 +34,10 @@
     "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
-    "@effectgrade/domain": "workspace:*"
+    "@effectgrade/adapters-node": "workspace:*",
+    "@effectgrade/domain": "workspace:*",
+    "@effectgrade/inventory": "workspace:*",
+    "effect": "4.0.0-rc.108"
   },
   "devDependencies": {
     "@effectgrade/test-kit": "workspace:*",

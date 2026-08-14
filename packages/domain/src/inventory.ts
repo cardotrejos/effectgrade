@@ -149,6 +149,34 @@ export const TypeScriptInventory = Schema.Struct({
 })
 export type TypeScriptInventory = typeof TypeScriptInventory.Type
 
+export const EffectChannel = Schema.Literals(["v3", "v4", "mixed", "unknown"]).annotate({
+  identifier: "EffectChannel",
+})
+export type EffectChannel = typeof EffectChannel.Type
+
+export const EffectPackageVersion = Schema.Struct({
+  name: Schema.String,
+  version: Schema.String,
+  path: RepoPath,
+})
+export type EffectPackageVersion = typeof EffectPackageVersion.Type
+
+export const EffectInventory = Schema.Struct({
+  present: Schema.Boolean,
+  channel: EffectChannel,
+  versions: Schema.Array(EffectPackageVersion),
+  duplicateVersions: Schema.Array(Schema.String),
+  imports: Schema.Array(Schema.String),
+  unstableImports: Schema.Array(Schema.String),
+  runtimeCandidates: Schema.Array(RepoPath),
+  layerCandidates: Schema.Array(RepoPath),
+  serviceCandidates: Schema.Number,
+  schemaUsage: Schema.Boolean,
+  configUsage: Schema.Boolean,
+  languageService: Schema.Boolean,
+})
+export type EffectInventory = typeof EffectInventory.Type
+
 export const PackageGraphInventory = Schema.Struct({
   root: RepoPath,
   repositoryKind: RepositoryKind,
@@ -157,6 +185,7 @@ export const PackageGraphInventory = Schema.Struct({
   packages: Schema.Array(PackageInventory),
   targets: Schema.Array(TargetInventory),
   typescript: Schema.optionalKey(TypeScriptInventory),
+  effect: Schema.optionalKey(EffectInventory),
   diagnostics: Schema.Array(Diagnostic),
 })
 export type PackageGraphInventory = typeof PackageGraphInventory.Type

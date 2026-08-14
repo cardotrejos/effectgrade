@@ -35,9 +35,18 @@ importers:
 
   apps/cli:
     dependencies:
+      '@effectgrade/adapters-node':
+        specifier: workspace:*
+        version: link:../../packages/adapters-node
       '@effectgrade/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@effectgrade/inventory':
+        specifier: workspace:*
+        version: link:../../packages/inventory
+      effect:
+        specifier: 4.0.0-rc.108
+        version: 4.0.0-rc.108
     devDependencies:
       '@effectgrade/test-kit':
         specifier: workspace:*
