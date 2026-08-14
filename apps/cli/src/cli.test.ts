@@ -1,8 +1,10 @@
 import { readdirSync, readFileSync } from "node:fs"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { expectExitCode, makeMemoryFileSystem } from "@effectgrade/test-kit"
+import { digestDirectory, makeNodeFileSystem } from "@effectgrade/adapters-node"
+import { expectExitCode, makeMemoryFileSystem, withTempDir } from "@effectgrade/test-kit"
 import { describe, expect, it } from "vitest"
 
 import { cliVersion, runCli } from "./cli.js"
@@ -67,7 +69,7 @@ describe("cli contract", () => {
   })
 
   it("refuses unimplemented commands without polluting stdout", async () => {
-    const result = await runCli(["verify"])
+    const result = await runCli(["doctor"])
     expectExitCode(result, 2)
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("not implemented")
@@ -120,6 +122,54 @@ describe("cli contract", () => {
     expectExitCode(profile, 0)
     expect(profile.stdout).toContain("4.0.0-rc.108")
     expect(profile.stdout).toContain("sha256:")
+  })
+
+  it("verifies in a sandbox without changing the source fixture", async () => {
+    await withTempDir(async (root) => {
+      const seed = seedFromFixture("hono-pnpm-basic")
+      for (const [rel, contents] of Object.entries(seed)) {
+        const fullPath = join(root, rel)
+        await mkdir(dirname(fullPath), { recursive: true })
+        await writeFile(fullPath, contents)
+      }
+      const fileSystem = makeNodeFileSystem(root)
+      await runCli(["plan", "add", "core", "hono-bridge"], { fileSystem, sourceRoot: root })
+      const before = await digestDirectory(root)
+      const verified = await runCli(["verify"], { fileSystem, sourceRoot: root })
+      expectExitCode(verified, 0)
+      expect(verified.stdout).toContain("passed")
+      expect(verified.stdout).toContain("unchanged")
+      expect(await digestDirectory(root)).toBe(before)
+      await expect(readFile(join(root, "src/effect/AppRuntime.ts"), "utf8")).rejects.toThrow()
+    })
+  })
+
+  it("adopts core and hono-bridge and is a no-op the second time", async () => {
+    await withTempDir(async (root) => {
+      const seed = seedFromFixture("hono-pnpm-basic")
+      for (const [rel, contents] of Object.entries(seed)) {
+        const fullPath = join(root, rel)
+        await mkdir(dirname(fullPath), { recursive: true })
+        await writeFile(fullPath, contents)
+      }
+      const fileSystem = makeNodeFileSystem(root)
+      const first = await runCli(["adopt", "core", "hono-bridge"], { fileSystem, sourceRoot: root })
+      expectExitCode(first, 0)
+      expect(first.stdout).toContain("Plan sha256:")
+      expect(first.stdout).toContain("Verify")
+      expect(first.stdout).toContain("Applied")
+      expect(first.stdout).toContain("clean")
+      expect(await readFile(join(root, "src/effect/AppRuntime.ts"), "utf8")).toContain(
+        "ManagedRuntime",
+      )
+
+      const second = await runCli(["adopt", "core", "hono-bridge"], {
+        fileSystem,
+        sourceRoot: root,
+      })
+      expectExitCode(second, 0)
+      expect(second.stdout).toContain("no-op")
+    })
   })
 
   it("uses exit 8 for an unknown profile", async () => {

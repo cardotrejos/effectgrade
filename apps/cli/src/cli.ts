@@ -1,5 +1,13 @@
 import { Effect, Result } from "effect"
-import { makeNodeFileSystem } from "@effectgrade/adapters-node"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+
+import {
+  cleanupSandbox,
+  digestDirectory,
+  makeNodeFileSystem,
+  materializeCopySandbox,
+} from "@effectgrade/adapters-node"
 import {
   cliBinaryName,
   decodeRepoPath,
@@ -28,6 +36,7 @@ import {
   planIdentity,
   renderPlanSummary,
   statusRepository,
+  verifyPlanIdempotency,
   writeProjectedState,
   type PlanOperation,
 } from "@effectgrade/transform"
@@ -119,6 +128,7 @@ const firstPositional = (args: ReadonlyArray<string>): string | undefined =>
 
 export type RunCliOptions = {
   readonly fileSystem?: FileSystemApi
+  readonly sourceRoot?: string
 }
 
 const optionValue = (args: ReadonlyArray<string>, name: string): string | undefined => {
@@ -331,6 +341,82 @@ const loadLatestPlan = async (
   }
 }
 
+const verifyCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
+  const sourceRoot = options.sourceRoot ?? process.cwd()
+  const plan = await loadLatestPlan(fileSystem)
+  if (plan === undefined) {
+    return { exitCode: 2, stdout: "", stderr: "No saved plan. Run `effectgrade plan add` first.\n" }
+  }
+
+  const before = await digestDirectory(sourceRoot)
+  const sandboxRoot = join(tmpdir(), `effectgrade-verify-${String(Date.now())}`)
+  const materialized = await materializeCopySandbox({
+    sourceRoot,
+    sandboxRoot,
+    operations: plan.operations,
+  })
+  const after = await digestDirectory(sourceRoot)
+  const sandboxFs = makeNodeFileSystem(sandboxRoot)
+  const idempotency = await Effect.runPromise(verifyPlanIdempotency(sandboxFs, plan.operations))
+  await cleanupSandbox(sandboxRoot)
+
+  const ok = before === after && idempotency.ok && materialized.sourceDigest === before
+  const result = {
+    planId: plan.id,
+    sourceUnchanged: before === after,
+    sourceDigest: before,
+    idempotency,
+    sandboxFiles: materialized.changes.map((change) => change.path),
+  }
+
+  if (hasFlag(args, "--json")) {
+    return {
+      exitCode: ok ? 0 : 5,
+      stdout: `${JSON.stringify({ command: "verify", ok, result }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+
+  return {
+    exitCode: ok ? 0 : 5,
+    stdout: `Verify            ${ok ? "passed" : "failed"}\nPlan              ${plan.id}\nSource            unchanged\nIdempotency       ${idempotency.detail}\n`,
+    stderr: "",
+  }
+}
+
+const adoptCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const capabilities = args.filter((arg) => !arg.startsWith("-") && arg !== "adopt")
+  const planned = await planAddCommand(["plan", "add", ...capabilities], options)
+  if (planned.exitCode !== 0) {
+    return planned
+  }
+  const verified = await verifyCommand(["verify"], options)
+  if (verified.exitCode !== 0) {
+    return verified
+  }
+  const applied = await applyCommand(["apply"], options)
+  if (applied.exitCode !== 0) {
+    return applied
+  }
+  const status = await statusCommand(["status"], options)
+  const stdout = `${planned.stdout}\n${verified.stdout}\n${applied.stdout}\n${status.stdout}`
+  if (hasFlag(args, "--json")) {
+    return {
+      exitCode: status.exitCode,
+      stdout: `${JSON.stringify({ command: "adopt", ok: status.exitCode === 0, result: { planned: planned.stdout, verified: verified.stdout, applied: applied.stdout, status: status.stdout } }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+  return { exitCode: status.exitCode, stdout, stderr: "" }
+}
+
 const statusCommand = async (
   args: ReadonlyArray<string>,
   options: RunCliOptions,
@@ -434,6 +520,14 @@ export const runCli = async (
 
   if (command === "status") {
     return statusCommand(args, options)
+  }
+
+  if (command === "verify") {
+    return verifyCommand(args, options)
+  }
+
+  if (command === "adopt") {
+    return adoptCommand(args, options)
   }
 
   if (command !== undefined && isKnownCommand(command)) {
