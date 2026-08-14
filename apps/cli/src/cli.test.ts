@@ -73,6 +73,19 @@ describe("cli contract", () => {
     expect(result.stderr).toContain("not implemented")
   })
 
+  it("applies a saved plan and is a no-op on the second apply", async () => {
+    const fileSystem = makeMemoryFileSystem(seedFromFixture("hono-pnpm-basic"))
+    await runCli(["plan", "add", "core", "hono-bridge"], { fileSystem })
+    const first = await runCli(["apply"], { fileSystem })
+    expectExitCode(first, 0)
+    expect(first.stdout).toContain("Applied")
+    expect(first.stdout).toContain("src/effect/AppRuntime.ts")
+
+    const second = await runCli(["apply"], { fileSystem })
+    expectExitCode(second, 0)
+    expect(second.stdout).toContain("no-op")
+  })
+
   it("plans core and hono-bridge against a Hono fixture", async () => {
     const result = await runCli(["plan", "add", "core", "hono-bridge"], {
       fileSystem: makeMemoryFileSystem(seedFromFixture("hono-pnpm-basic")),

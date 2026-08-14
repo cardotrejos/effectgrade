@@ -1,5 +1,7 @@
 export { upsertJsonProperty, upsertPackageDependency } from "./package-ops.js"
 export type { JsonEditResult } from "./package-ops.js"
+export { applyVerifiedPlan } from "./apply.js"
+export type { ApplyResult } from "./apply.js"
 export { remainingPlanChanges, verifyPlanIdempotency } from "./idempotency.js"
 export type { IdempotencyCheck } from "./idempotency.js"
 export { flushOverlay, makeOverlayTree } from "./tree.js"

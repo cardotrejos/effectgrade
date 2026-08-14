@@ -22,10 +22,12 @@ import {
 import { inspectInventory, renderPackageGraph } from "@effectgrade/inventory"
 import {
   applyOperations,
+  applyVerifiedPlan,
   compileHonoAdoptionPlan,
   makeOverlayTree,
   planIdentity,
   renderPlanSummary,
+  type PlanOperation,
 } from "@effectgrade/transform"
 
 export const cliVersion = "0.0.0"
@@ -298,6 +300,54 @@ const planAddCommand = async (
   }
 }
 
+const loadLatestPlan = async (
+  fileSystem: FileSystemApi,
+): Promise<
+  { readonly id: string; readonly operations: ReadonlyArray<PlanOperation> } | undefined
+> => {
+  const children = await Effect.runPromise(
+    fileSystem
+      .list(Result.getOrThrow(decodeRepoPath(".effectgrade/plans")))
+      .pipe(Effect.orElseSucceed(() => [] as const)),
+  )
+  const latest = [...children].toSorted().at(-1)
+  if (latest === undefined) {
+    return undefined
+  }
+  const raw = await Effect.runPromise(fileSystem.readFile(latest))
+  return JSON.parse(raw) as {
+    readonly id: string
+    readonly operations: ReadonlyArray<PlanOperation>
+  }
+}
+
+const applyCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
+  const plan = await loadLatestPlan(fileSystem)
+  if (plan === undefined) {
+    return { exitCode: 2, stdout: "", stderr: "No saved plan. Run `effectgrade plan add` first.\n" }
+  }
+  const result = await Effect.runPromise(applyVerifiedPlan(fileSystem, plan.operations))
+  const exitCode = result.diagnostics.length > 0 ? 6 : 0
+  const summary = result.noop
+    ? "Apply is a no-op; the verified plan is already present.\n"
+    : result.applied
+      ? `Applied ${String(result.files.length)} file(s).\n${result.files.map((file) => `  ${file.kind} ${file.path}`).join("\n")}\n`
+      : `${result.diagnostics.map((item) => `${item.code} ${item.title}`).join("\n")}\n`
+
+  if (hasFlag(args, "--json")) {
+    return {
+      exitCode,
+      stdout: `${JSON.stringify({ command: "apply", ok: exitCode === 0, result }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+  return { exitCode, stdout: summary, stderr: "" }
+}
+
 export const runCli = async (
   args: ReadonlyArray<string>,
   options: RunCliOptions = {},
@@ -330,6 +380,10 @@ export const runCli = async (
 
   if (command === "catalog") {
     return catalogCommand(args)
+  }
+
+  if (command === "apply") {
+    return applyCommand(args, options)
   }
 
   if (command !== undefined && isKnownCommand(command)) {
