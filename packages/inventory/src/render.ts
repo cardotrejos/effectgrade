@@ -22,6 +22,23 @@ export const renderPackageGraph = (inventory: PackageGraphInventory): string => 
     label("Workspace", workspaceLabel(inventory)),
   ]
 
+  if (inventory.typescript?.version !== undefined) {
+    lines.push(label("TypeScript", inventory.typescript.version))
+  }
+
+  const primary =
+    inventory.targets.find((target) => target.kind === "server") ?? inventory.targets[0]
+  if (primary?.runtime.value !== undefined) {
+    lines.push(label("Runtime", primary.runtime.value))
+  }
+  const framework = primary?.frameworks[0]
+  if (framework !== undefined) {
+    lines.push(label("Framework", framework.id === "hono" ? "Hono" : framework.id))
+  }
+  if (primary?.entrypoints[0] !== undefined) {
+    lines.push(label("Entry point", primary.entrypoints[0]))
+  }
+
   if (inventory.packages.length > 0) {
     lines.push("", "Packages")
     for (const pkg of inventory.packages) {

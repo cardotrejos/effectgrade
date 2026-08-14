@@ -1,0 +1,7 @@
+{
+  "name": "ambiguous-hono",
+  "private": true,
+  "dependencies": {
+    "hono": "4.7.5"
+  }
+}

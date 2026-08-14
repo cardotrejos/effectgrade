@@ -5,6 +5,7 @@
     "**/coverage/**",
     "**/.turbo/**",
     "**/node_modules/**",
+    "fixtures/**",
     "effectgrade-plan.md"
   ],
   "categories": {

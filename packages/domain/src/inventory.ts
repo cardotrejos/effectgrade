@@ -61,6 +61,7 @@ export const EvidenceKind = Schema.Literals([
   "file",
   "field",
   "lockfile",
+  "source",
   "workspace-config",
 ]).annotate({
   identifier: "EvidenceKind",
@@ -124,6 +125,30 @@ export const TargetInventory = Schema.Struct({
 })
 export type TargetInventory = typeof TargetInventory.Type
 
+export const TypeScriptConfigInventory = Schema.Struct({
+  path: RepoPath,
+  extends: Schema.optionalKey(Schema.String),
+  module: Schema.optionalKey(Schema.String),
+  moduleResolution: Schema.optionalKey(Schema.String),
+  strict: Schema.optionalKey(Schema.Boolean),
+  jsx: Schema.optionalKey(Schema.String),
+  experimentalDecorators: Schema.optionalKey(Schema.Boolean),
+  paths: Schema.optionalKey(Schema.Record(Schema.String, Schema.Array(Schema.String))),
+  references: Schema.Array(Schema.String),
+  composite: Schema.optionalKey(Schema.Boolean),
+  include: Schema.Array(Schema.String),
+  exclude: Schema.Array(Schema.String),
+  plugins: Schema.Array(Schema.String),
+  effectLanguageService: Schema.Boolean,
+})
+export type TypeScriptConfigInventory = typeof TypeScriptConfigInventory.Type
+
+export const TypeScriptInventory = Schema.Struct({
+  version: Schema.optionalKey(Schema.String),
+  configs: Schema.Array(TypeScriptConfigInventory),
+})
+export type TypeScriptInventory = typeof TypeScriptInventory.Type
+
 export const PackageGraphInventory = Schema.Struct({
   root: RepoPath,
   repositoryKind: RepositoryKind,
@@ -131,6 +156,7 @@ export const PackageGraphInventory = Schema.Struct({
   workspaceTool: Schema.optionalKey(DetectedWorkspaceTool),
   packages: Schema.Array(PackageInventory),
   targets: Schema.Array(TargetInventory),
+  typescript: Schema.optionalKey(TypeScriptInventory),
   diagnostics: Schema.Array(Diagnostic),
 })
 export type PackageGraphInventory = typeof PackageGraphInventory.Type
