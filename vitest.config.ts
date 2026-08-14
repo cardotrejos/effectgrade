@@ -9,6 +9,7 @@ const catalogEntry = fileURLToPath(new URL("./packages/catalog/src/index.ts", im
 const domainEntry = fileURLToPath(new URL("./packages/domain/src/index.ts", import.meta.url))
 const inventoryEntry = fileURLToPath(new URL("./packages/inventory/src/index.ts", import.meta.url))
 const testKitEntry = fileURLToPath(new URL("./packages/test-kit/src/index.ts", import.meta.url))
+const transformEntry = fileURLToPath(new URL("./packages/transform/src/index.ts", import.meta.url))
 
 export default defineConfig({
   resolve: {
@@ -18,6 +19,7 @@ export default defineConfig({
       "@effectgrade/domain": domainEntry,
       "@effectgrade/inventory": inventoryEntry,
       "@effectgrade/test-kit": testKitEntry,
+      "@effectgrade/transform": transformEntry,
     },
   },
   test: {

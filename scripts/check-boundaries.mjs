@@ -73,6 +73,7 @@ const rules = [
       "packages/inventory/src",
       "packages/catalog",
       "packages/capability-packs",
+      "packages/transform",
     ],
     applies: (filePath) => !isTestFile(filePath),
     forbidden: [
