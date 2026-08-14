@@ -69,6 +69,12 @@ importers:
       '@effectgrade/domain':
         specifier: workspace:*
         version: link:../domain
+      '@effectgrade/inventory':
+        specifier: workspace:*
+        version: link:../inventory
+      '@effectgrade/transform':
+        specifier: workspace:*
+        version: link:../transform
       effect:
         specifier: 4.0.0-rc.108
         version: 4.0.0-rc.108

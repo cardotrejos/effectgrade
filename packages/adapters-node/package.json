@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@effectgrade/domain": "workspace:*",
+    "@effectgrade/inventory": "workspace:*",
+    "@effectgrade/transform": "workspace:*",
     "effect": "4.0.0-rc.108"
   },
   "devDependencies": {

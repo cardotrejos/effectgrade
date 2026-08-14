@@ -1,6 +1,6 @@
 export { upsertJsonProperty, upsertPackageDependency } from "./package-ops.js"
 export type { JsonEditResult } from "./package-ops.js"
-export { makeOverlayTree } from "./tree.js"
+export { flushOverlay, makeOverlayTree } from "./tree.js"
 export type { OverlayTree, TreeChange, TreeChangeKind } from "./tree.js"
 export { planIdentity, renderPlanSummary, unifiedFileDiff } from "./plan-identity.js"
 export { applyOperations, compileHonoAdoptionPlan } from "./plan.js"

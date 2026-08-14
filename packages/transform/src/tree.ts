@@ -16,7 +16,7 @@ export type OverlayTree = {
 }
 
 type OverlayEntry =
-  | { readonly kind: "file"; readonly contents: string }
+  | { readonly kind: "file"; readonly contents: string; readonly change: "create" | "modify" }
   | { readonly kind: "deleted" }
 
 export const makeOverlayTree = (base: FileSystemApi): OverlayTree => {
@@ -53,7 +53,11 @@ export const makeOverlayTree = (base: FileSystemApi): OverlayTree => {
         overlay.delete(path)
         return
       }
-      overlay.set(path, { kind: "file", contents })
+      overlay.set(path, {
+        kind: "file",
+        contents,
+        change: current === undefined ? "create" : "modify",
+      })
     })
 
   const deleteFile = (path: RepoPath): Effect.Effect<void, FileSystemError> =>
@@ -76,21 +80,24 @@ export const makeOverlayTree = (base: FileSystemApi): OverlayTree => {
         items.push({ path: path as RepoPath, kind: "delete" })
         continue
       }
-      items.push({
-        path: path as RepoPath,
-        kind: itemsBaseExists(path) ? "modify" : "create",
-      })
+      items.push({ path: path as RepoPath, kind: entry.change })
     }
     return items.toSorted((left, right) => left.path.localeCompare(right.path))
   }
 
-  const itemsBaseExists = (path: string): boolean =>
-    Effect.runSync(
-      base.stat(path as RepoPath).pipe(
-        Effect.map(() => true),
-        Effect.orElseSucceed(() => false),
-      ),
-    )
-
   return { readFile, writeFile, deleteFile, changes }
 }
+
+export const flushOverlay = (
+  tree: OverlayTree,
+  dest: FileSystemApi,
+): Effect.Effect<void, FileSystemError> =>
+  Effect.gen(function* () {
+    for (const change of tree.changes()) {
+      if (change.kind === "delete") {
+        continue
+      }
+      const contents = yield* tree.readFile(change.path)
+      yield* dest.writeFile(change.path, contents)
+    }
+  })
