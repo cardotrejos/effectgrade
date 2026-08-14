@@ -8,5 +8,5 @@
   },
   "include": ["src/**/*.ts", "../../types/text-decoder.d.ts"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [{ "path": "../domain" }, { "path": "../inventory" }]
+  "references": [{ "path": "../catalog" }, { "path": "../domain" }, { "path": "../inventory" }]
 }

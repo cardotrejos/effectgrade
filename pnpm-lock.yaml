@@ -137,6 +137,9 @@ importers:
 
   packages/transform:
     dependencies:
+      '@effectgrade/catalog':
+        specifier: workspace:*
+        version: link:../catalog
       '@effectgrade/domain':
         specifier: workspace:*
         version: link:../domain
