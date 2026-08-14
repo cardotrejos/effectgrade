@@ -67,10 +67,21 @@ describe("cli contract", () => {
   })
 
   it("refuses unimplemented commands without polluting stdout", async () => {
-    const result = await runCli(["plan"])
+    const result = await runCli(["verify"])
     expectExitCode(result, 2)
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("not implemented")
+  })
+
+  it("plans core and hono-bridge against a Hono fixture", async () => {
+    const result = await runCli(["plan", "add", "core", "hono-bridge"], {
+      fileSystem: makeMemoryFileSystem(seedFromFixture("hono-pnpm-basic")),
+    })
+    expectExitCode(result, 0)
+    expect(result.stdout).toContain("Plan sha256:")
+    expect(result.stdout).toContain("effect-v4-rc108-node22-pnpm-hono-bridge")
+    expect(result.stdout).toContain("+ src/effect/AppRuntime.ts")
+    expect(result.stdout).toContain("~ src/index.ts")
   })
 
   it("lists bundled capabilities and profiles", async () => {

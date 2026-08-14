@@ -1,7 +1,8 @@
-import { Effect } from "effect"
+import { Effect, Result } from "effect"
 import { makeNodeFileSystem } from "@effectgrade/adapters-node"
 import {
   cliBinaryName,
+  decodeRepoPath,
   engineEffectVersion,
   FileSystem,
   makeCommandEnvelope,
@@ -19,6 +20,13 @@ import {
   renderProfile,
 } from "@effectgrade/catalog"
 import { inspectInventory, renderPackageGraph } from "@effectgrade/inventory"
+import {
+  applyOperations,
+  compileHonoAdoptionPlan,
+  makeOverlayTree,
+  planIdentity,
+  renderPlanSummary,
+} from "@effectgrade/transform"
 
 export const cliVersion = "0.0.0"
 
@@ -224,6 +232,72 @@ const inspectCommand = async (
   return { exitCode, stdout: renderPackageGraph(inventory), stderr: "" }
 }
 
+const defaultProfileId = "effect-v4-rc108-node22-pnpm-hono-bridge"
+
+const planAddCommand = async (
+  args: ReadonlyArray<string>,
+  options: RunCliOptions,
+): Promise<CliResult> => {
+  const capabilities = args.filter((arg) => !arg.startsWith("-") && arg !== "plan" && arg !== "add")
+  if (capabilities.length === 0) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: "Usage: effectgrade plan add <capability> [capability...]\n",
+    }
+  }
+
+  const fileSystem = options.fileSystem ?? makeNodeFileSystem(process.cwd())
+  const inventory = await Effect.runPromise(
+    Effect.provideService(inspectInventory(), FileSystem, fileSystem),
+  )
+  const profileId = optionValue(args, "--profile") ?? defaultProfileId
+  const plan = await Effect.runPromise(
+    compileHonoAdoptionPlan({
+      inventory,
+      profileId,
+      capabilities,
+    }),
+  )
+  const id = await Effect.runPromise(planIdentity({ profileId, capabilities, plan }))
+  const tree = makeOverlayTree(fileSystem)
+  await Effect.runPromise(applyOperations(tree, plan.operations))
+  const target =
+    optionValue(args, "--target") ??
+    inventory.targets.find((item) => item.kind === "server")?.root ??
+    "."
+  const summary = renderPlanSummary({
+    id,
+    profileId,
+    target,
+    files: tree.changes(),
+  })
+
+  const planPath = Result.getOrThrow(
+    decodeRepoPath(`.effectgrade/plans/${id.slice("sha256:".length)}.json`),
+  )
+  await Effect.runPromise(
+    fileSystem.writeFile(
+      planPath,
+      `${JSON.stringify({ id, profileId, capabilities, operations: plan.operations }, null, 2)}\n`,
+    ),
+  )
+
+  if (hasFlag(args, "--json")) {
+    return {
+      exitCode: plan.diagnostics.some((item) => item.severity === "error") ? 4 : 0,
+      stdout: `${JSON.stringify({ command: "plan", ok: true, result: { id, profileId, operations: plan.operations } }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+
+  return {
+    exitCode: plan.diagnostics.some((item) => item.severity === "error") ? 4 : 0,
+    stdout: summary,
+    stderr: "",
+  }
+}
+
 export const runCli = async (
   args: ReadonlyArray<string>,
   options: RunCliOptions = {},
@@ -245,6 +319,13 @@ export const runCli = async (
 
   if (command === "inspect") {
     return inspectCommand(args, options)
+  }
+
+  if (command === "plan") {
+    const action = args.filter((arg) => !arg.startsWith("-") && arg !== "plan")[0]
+    if (action === "add") {
+      return planAddCommand(args, options)
+    }
   }
 
   if (command === "catalog") {

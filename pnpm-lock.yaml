@@ -47,6 +47,9 @@ importers:
       '@effectgrade/inventory':
         specifier: workspace:*
         version: link:../../packages/inventory
+      '@effectgrade/transform':
+        specifier: workspace:*
+        version: link:../../packages/transform
       effect:
         specifier: 4.0.0-rc.108
         version: 4.0.0-rc.108

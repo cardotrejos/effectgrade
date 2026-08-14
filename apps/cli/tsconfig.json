@@ -12,6 +12,7 @@
     { "path": "../../packages/adapters-node" },
     { "path": "../../packages/catalog" },
     { "path": "../../packages/domain" },
-    { "path": "../../packages/inventory" }
+    { "path": "../../packages/inventory" },
+    { "path": "../../packages/transform" }
   ]
 }
