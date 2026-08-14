@@ -15,6 +15,7 @@ export const configFileName = "effectgrade.config.jsonc" as const
 export const lockFileName = "effectgrade.lock.json" as const
 
 export * from "./canonical.js"
+export * from "./catalog.js"
 export * from "./diagnostic.js"
 export * from "./envelope.js"
 export * from "./filesystem.js"

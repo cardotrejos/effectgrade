@@ -38,6 +38,9 @@ importers:
       '@effectgrade/adapters-node':
         specifier: workspace:*
         version: link:../../packages/adapters-node
+      '@effectgrade/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@effectgrade/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -73,6 +76,19 @@ importers:
       '@types/node':
         specifier: 22.20.1
         version: 22.20.1
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/catalog:
+    dependencies:
+      '@effectgrade/domain':
+        specifier: workspace:*
+        version: link:../domain
+      effect:
+        specifier: 4.0.0-rc.108
+        version: 4.0.0-rc.108
+    devDependencies:
       typescript:
         specifier: 5.9.3
         version: 5.9.3

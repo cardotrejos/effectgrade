@@ -9,6 +9,15 @@ import {
   publicPackageName,
   type FileSystemApi,
 } from "@effectgrade/domain"
+import {
+  getCapability,
+  getProfile,
+  listCapabilities,
+  listProfiles,
+  renderCapability,
+  renderCatalogList,
+  renderProfile,
+} from "@effectgrade/catalog"
 import { inspectInventory, renderPackageGraph } from "@effectgrade/inventory"
 
 export const cliVersion = "0.0.0"
@@ -109,6 +118,76 @@ const optionValue = (args: ReadonlyArray<string>, name: string): string | undefi
   return value !== undefined && !value.startsWith("-") ? value : undefined
 }
 
+const catalogCommand = async (args: ReadonlyArray<string>): Promise<CliResult> => {
+  const positionals = args.filter((arg) => !arg.startsWith("-") && arg !== "catalog")
+  const kind = positionals[0]
+  const id = positionals[1]
+  const json = hasFlag(args, "--json")
+
+  if (kind === "capability") {
+    if (id === undefined) {
+      return {
+        exitCode: 2,
+        stdout: "",
+        stderr: "Usage: effectgrade catalog capability <id>\n",
+      }
+    }
+    const capability = getCapability(id)
+    if (capability === undefined) {
+      return { exitCode: 2, stdout: "", stderr: `Unknown capability: ${id}\n` }
+    }
+    if (json) {
+      return {
+        exitCode: 0,
+        stdout: `${JSON.stringify({ command: "catalog", ok: true, result: capability }, null, 2)}\n`,
+        stderr: "",
+      }
+    }
+    return { exitCode: 0, stdout: renderCapability(capability), stderr: "" }
+  }
+
+  if (kind === "profile") {
+    if (id === undefined) {
+      return {
+        exitCode: 2,
+        stdout: "",
+        stderr: "Usage: effectgrade catalog profile <id>\n",
+      }
+    }
+    const profile = await Effect.runPromise(getProfile(id))
+    if (profile === undefined) {
+      return { exitCode: 8, stdout: "", stderr: `Unknown profile: ${id}\n` }
+    }
+    if (json) {
+      return {
+        exitCode: 0,
+        stdout: `${JSON.stringify({ command: "catalog", ok: true, result: profile }, null, 2)}\n`,
+        stderr: "",
+      }
+    }
+    return { exitCode: 0, stdout: renderProfile(profile), stderr: "" }
+  }
+
+  if (kind !== undefined) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: `Unknown catalog subject: ${kind}\n`,
+    }
+  }
+
+  const capabilities = listCapabilities()
+  const profiles = await Effect.runPromise(listProfiles())
+  if (json) {
+    return {
+      exitCode: 0,
+      stdout: `${JSON.stringify({ command: "catalog", ok: true, result: { capabilities, profiles } }, null, 2)}\n`,
+      stderr: "",
+    }
+  }
+  return { exitCode: 0, stdout: renderCatalogList(capabilities, profiles), stderr: "" }
+}
+
 const inspectCommand = async (
   args: ReadonlyArray<string>,
   options: RunCliOptions,
@@ -166,6 +245,10 @@ export const runCli = async (
 
   if (command === "inspect") {
     return inspectCommand(args, options)
+  }
+
+  if (command === "catalog") {
+    return catalogCommand(args)
   }
 
   if (command !== undefined && isKnownCommand(command)) {

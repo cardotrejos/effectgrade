@@ -67,10 +67,37 @@ describe("cli contract", () => {
   })
 
   it("refuses unimplemented commands without polluting stdout", async () => {
-    const result = await runCli(["catalog"])
+    const result = await runCli(["plan"])
     expectExitCode(result, 2)
     expect(result.stdout).toBe("")
     expect(result.stderr).toContain("not implemented")
+  })
+
+  it("lists bundled capabilities and profiles", async () => {
+    const result = await runCli(["catalog"])
+    expectExitCode(result, 0)
+    expect(result.stdout).toContain("core")
+    expect(result.stdout).toContain("hono-bridge")
+    expect(result.stdout).toContain("effect-v4-rc108-node22-pnpm-hono-bridge")
+    expect(result.stdout).toContain("4.0.0-rc.108")
+  })
+
+  it("shows capability and profile detail", async () => {
+    const capability = await runCli(["catalog", "capability", "core"])
+    expectExitCode(capability, 0)
+    expect(capability.stdout).toContain("Effect core")
+    expect(capability.stdout).toContain("foundation")
+
+    const profile = await runCli(["catalog", "profile", "effect-v4-rc108-node22-pnpm-hono-bridge"])
+    expectExitCode(profile, 0)
+    expect(profile.stdout).toContain("4.0.0-rc.108")
+    expect(profile.stdout).toContain("sha256:")
+  })
+
+  it("uses exit 8 for an unknown profile", async () => {
+    const result = await runCli(["catalog", "profile", "missing-profile"])
+    expectExitCode(result, 8)
+    expect(result.stderr).toContain("Unknown profile")
   })
 
   it("reports unknown commands on stderr", async () => {
