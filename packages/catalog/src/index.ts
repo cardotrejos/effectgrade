@@ -9,3 +9,10 @@ export {
   validateRegistry,
 } from "./registry.js"
 export { renderCapability, renderCatalogList, renderProfile } from "./render.js"
+export { closeCapabilities, resolveCapabilities } from "./resolve.js"
+export type {
+  Resolution,
+  ResolutionExplanation,
+  ResolveRequest,
+  ResolvedPackage,
+} from "./resolve.js"
