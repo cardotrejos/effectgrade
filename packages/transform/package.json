@@ -19,7 +19,8 @@
   "dependencies": {
     "@effectgrade/domain": "workspace:*",
     "@effectgrade/inventory": "workspace:*",
-    "effect": "4.0.0-rc.108"
+    "effect": "4.0.0-rc.108",
+    "typescript": "5.9.3"
   },
   "devDependencies": {
     "@effectgrade/test-kit": "workspace:*",
